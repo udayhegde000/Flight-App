@@ -1,0 +1,24 @@
+Eureka-server
+	web
+	devtools
+	
+	eureka server
+	
+Zuul-Api-Gateway (springboot version-> <= 2.3.9)
+	web
+	devtools
+	eureka client
+	zuul
+	
+Cinema-Catalog
+	web
+	devtools
+	eureka client
+
+Movies-Service
+	web
+	devtools
+	eureka client
+	data jpa
+	mysql
+
