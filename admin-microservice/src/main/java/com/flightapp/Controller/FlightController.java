@@ -7,6 +7,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -39,6 +41,9 @@ public class FlightController {
 
 	@Autowired
 	private RestTemplate restTemplate;
+
+	@Autowired
+    LoadBalancerClient loadBalancerClient;
 
 	@GetMapping("/all")
 	public List<Flight> findAll() {
@@ -88,7 +93,7 @@ public class FlightController {
 				headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
 				HttpEntity<Flight> entity = new HttpEntity<Flight>(flight, headers);
 				ResponseEntity<Object[]> responseEntity = restTemplate.exchange(
-						"http://localhost:8091/flight/api/trips/startTrips", HttpMethod.PUT, entity, Object[].class);
+						"http://FLIGHT-SERVICE/trips/startTrips", HttpMethod.PUT, entity, Object[].class);
 
 				flight.setScheduled(true);
 				startedFlight = flightService.save(flight);
@@ -115,10 +120,11 @@ public class FlightController {
 				throw new Exception("Flight not found for flight id: " + flightId);
 			} else {
 				HttpHeaders headers = new HttpHeaders();
+				ServiceInstance serviceinstance = loadBalancerClient.choose("FLIGHT-SERVICE");
 				headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
 				HttpEntity<Flight> entity = new HttpEntity<Flight>(flight, headers);
 				ResponseEntity<Object> responseEntity = restTemplate.exchange(
-						"http://localhost:8091/flight/api/trips/stopTrips", HttpMethod.PUT, entity, Object.class);
+					"http://"+serviceinstance.getHost()+":"+serviceinstance.getPort()+"/trips/stopTrips", HttpMethod.PUT, entity, Object.class);
 
 				flight.setScheduled(false);
 				startedFlight = flightService.save(flight);
